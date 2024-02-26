@@ -9,7 +9,7 @@ export async function getInstanceStatus(
   pollInterval: number,
   maxAttempts: number
 ): Promise<void> {
-  const apiEndpoint = `${temboApi}/api/v1/orgs/${orgId}/instances/${instanceId}`
+  const apiStatusEndpoint = `${temboApi}/api/v1/orgs/${orgId}/instances/${instanceId}`
   let state = 'Submitted'
 
   let attempts = 0
@@ -19,7 +19,7 @@ export async function getInstanceStatus(
     attempts < maxAttempts
   ) {
     try {
-      const response = await axios.get(apiEndpoint, {
+      const response = await axios.get(apiStatusEndpoint, {
         headers: {
           Authorization: `Bearer ${temboToken}`,
           'Content-Type': 'application/json'

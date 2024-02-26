@@ -19,7 +19,7 @@ export async function run(): Promise<void> {
     const maxAttempt: number =
       Number(core.getInput('max-polling-attempts')) || 60
 
-    const apiEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/restore`
+    const apiBranchingEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/restore`
 
     // Construct the branching payload
     // https://api.tembo.io/redoc#tag/instance/operation/restore_instance
@@ -30,9 +30,12 @@ export async function run(): Promise<void> {
       },
       environment: env
     }
+    /* console.log('Making API call to:', apiBranchingEndpoint)
+    console.log('Payload:', JSON.stringify(payload, null, 2))
+    console.log('Authorization Token:', temboToken) */
 
     // Call the branching API
-    const response = await axios.post(apiEndpoint, payload, {
+    const response = await axios.post(apiBranchingEndpoint, payload, {
       headers: {
         Authorization: `Bearer ${temboToken}`,
         'Content-Type': 'application/json'
