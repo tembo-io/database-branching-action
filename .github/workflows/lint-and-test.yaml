@@ -17,7 +17,11 @@ jobs:
         node-version: 20
         cache: 'npm'
     - name: Install action dependencies
-      run: npm install
+      run: npm ci
+    - name: Build
+      run: npm run build
+    - name: Format check
+      run: npm run format-check
     - name: Lint
       run: npm run lint
     - name: Run Tests
@@ -37,7 +41,9 @@ jobs:
         id: set_short_sha
         run: echo "SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
       - name: Install dependencies
-        run: npm install
+        run: npm ci
+      - name: Build action
+        run: npm run build
       - name: Test Action Execution
         id: test-action
         uses: ./
