@@ -41,5 +41,5 @@ outputs:
 
 runs:
   using: 'node20'
-  main: 'dist/index.js'
-  post: 'dist/index.js'
+  main: 'lib/branching.js'
+  post: 'lib/branching.js'
