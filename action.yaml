@@ -1,0 +1,40 @@
+name: 'Tembo Branching Action'
+description: 'Setup Database branching on your Tembo database instances'
+author: 'Tembo'
+
+# todo: Add better more descriptive descriptions for inputs
+inputs:
+  tembo-api-endpoint:
+    description: 'The Tembo API you wish to interact with'
+    default: 'https://api.tembo.io'
+  org-id:
+    description: 'The Tembo organization id associated with your account'
+  instance-id:
+    description: 'The Tembo id of the instance you wish to branch'
+  instance-name:
+    description: 'The name of your new branched instance'
+  tembo-token:
+    description: 'The Tembo JWT token used to access your organization'
+  environment:
+    description: 'The environment you wish to deploy the branched instance to: eg. dev/stanging/prod'
+    default: 'prod'
+
+outputs:
+  instance_id:
+    description: 'The instance ID of the new Tembo branched instance'
+  instance_name:
+    description: 'The instance name of the Tembo branched instance'
+  host:
+    description: 'The instance host address of the Tembo branched instance'
+  port:
+    description: 'The instance port number for the connection to the Tembo branched instance'
+  user:
+    description: 'The username for the connection, base64 encoded'
+  password:
+    description: 'The password for the connection, base64 encoded'
+
+runs:
+  using: 'node20'
+  main: 'dist/index.js'
+  post: 'dist/index.js'
+
