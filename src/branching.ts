@@ -30,9 +30,6 @@ export async function run(): Promise<void> {
       },
       environment: env
     }
-    /* console.log('Making API call to:', apiBranchingEndpoint)
-    console.log('Payload:', JSON.stringify(payload, null, 2))
-    console.log('Authorization Token:', temboToken) */
 
     // Call the branching API
     const response = await axios.post(apiBranchingEndpoint, payload, {
@@ -50,20 +47,12 @@ export async function run(): Promise<void> {
       const responseData = response.data
       const {instance_id, instance_name, connection_info} = responseData
 
-      // Decode username and password for the new instance
-      //const user = Buffer.from(connection_info.user, 'base64').toString('ascii')
-      //const passwd = Buffer.from(connection_info.password, 'base64').toString('ascii')
-
       core.setOutput('instance_id', instance_id)
       core.setOutput('instance_name', instance_name)
-      core.setOutput('host', connection_info.host)
-      core.setOutput('port', connection_info.port.toString())
-      core.setOutput('user', connection_info.user)
-      core.setOutput('password', connection_info.password)
-
-      // Logging or further processing
-      console.log(`Instance ID: ${instance_id}`)
-      console.log(`Instance Name: ${instance_name}`)
+      core.setOutput('host', connection_info?.host)
+      core.setOutput('port', connection_info?.port.toString())
+      core.setOutput('user', connection_info?.user)
+      core.setOutput('password', connection_info?.password)
 
       // Now, check the status of the instance
       await getInstanceStatus(

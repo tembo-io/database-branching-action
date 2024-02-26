@@ -38,8 +38,8 @@ jobs:
         with:
           node-version: '20'
       - name: Format instance name
-        id: set_short_sha
-        run: echo "SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+        id: set_instance_name
+        run: echo "INSTANCE_SUFFIX=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
       - name: Install dependencies
         run: npm ci
       - name: Build action
@@ -50,8 +50,8 @@ jobs:
         with:
           tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
           org-id: ${{ secrets.ORG_ID }}
-          instance-id: 'inst_1708981835044_JzFXMf_5'
-          instance-name: 'branching-action-${{env.SHORT_SHA}}'
+          instance-id: ${{ secrets.BRANCH_INSTANCE_ID }}
+          instance-name: 'branch-${{env.INSTANCE_SUFFIX}}'
           tembo-token: ${{ secrets.TEMBO_TOKEN }}
           polling-interval: 5000
           max-polling-attempts: 60
