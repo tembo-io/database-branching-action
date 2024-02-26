@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+  lint-and-test:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -22,3 +22,39 @@ jobs:
       run: npm run lint
     - name: Run Tests
       run: npm test
+
+  test-action-execution:
+    needs: lint-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Format instance name
+        id: set_short_sha
+        run: echo "SHORT_SHA=$(git rev-parse --short ${{ github.sha }})" >> $GITHUB_ENV
+      - name: Install dependencies
+        run: npm install
+      - name: Test Action Execution
+        id: test-action
+        uses: ./
+        with:
+          tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
+          org-id: ${{ secrets.ORG_ID }}
+          instance-id: 'inst_1708981835044_JzFXMf_5'
+          instance-name: 'branching-action-${{env.SHORT_SHA}}'
+          tembo-token: ${{ secrets.TEMBO_TOKEN }}
+          polling-interval: 5000
+          max-polling-attempts: 60
+
+      - name: Check outputs
+        run: |
+          echo "Instance ID: ${{ steps.test-action.outputs.instance_id }}"
+          echo "Instance Name: ${{ steps.test-action.outputs.instance_name }}"
+          echo "Host: ${{ steps.test-action.outputs.host }}"
+          echo "Port: ${{ steps.test-action.outputs.port }}"
+          echo "User: ${{ steps.test-action.outputs.user }}"
+          echo "Password: ${{ steps.test-action.outputs.password }}"
