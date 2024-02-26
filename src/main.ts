@@ -1,5 +1,6 @@
 import * as core from '@actions/core'
 import axios from 'axios'
+import { getInstanceStatus } from './getInstanceStatus'
 
 export async function run(): Promise<void> {
     try {
@@ -10,6 +11,8 @@ export async function run(): Promise<void> {
         const instanceName: string = core.getInput('instance-name', {required: true})
         const temboToken: string = core.getInput('tembo-token', {required: true})
         const env: string = core.getInput('environment') || 'prod'
+        const pollInterval: number = Number(core.getInput('polling-interval')) || 5000
+        const maxAttempt: number = Number(core.getInput('max-polling-attempts')) || 60
 
         const apiEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/restore`
 
@@ -53,6 +56,9 @@ export async function run(): Promise<void> {
             // Logging or further processing
             console.log(`Instance ID: ${instance_id}`)
             console.log(`Instance Name: ${instance_name}`)
+
+            // Now, check the status of the instance
+            await getInstanceStatus(temboApiEndpoint, orgId, instance_id, temboToken, pollInterval, maxAttempt)
         } else {
             core.setFailed(`Tembo API responded with status code: ${response.status}`)
         }

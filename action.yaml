@@ -18,6 +18,12 @@ inputs:
   environment:
     description: 'The environment you wish to deploy the branched instance to: eg. dev/stanging/prod'
     default: 'prod'
+  polling-interval:
+    description: 'The interval polling the Tembo API endpoint (type Number)'
+    default: 5000 // 5000ms/5 seconds
+  max-polling-attempts:
+    description: 'Maximum number of attempts to check the status through the Tembo API endpoint (type Number)'
+    default: 60 // This gives us 5 seconds * 60 = 5 minutes of waiting
 
 outputs:
   instance_id:
