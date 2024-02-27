@@ -17,7 +17,7 @@ export async function run(): Promise<void> {
   }
   const defaultRandomName: string = uniqueNamesGenerator(randomNameConfig)
   // Retreive inputs from the action
-  const operation: string = core.getInput('operation') || 'create'
+  const action: string = core.getInput('action') || 'branch'
   const temboApiEndpoint: string =
     core.getInput('tembo-api-endpoint') || 'https://api.tembo.io'
   const orgId: string = core.getInput('org-id', {required: true})
@@ -29,7 +29,7 @@ export async function run(): Promise<void> {
   const pollInterval: number = Number(core.getInput('polling-interval')) || 5000
   const maxAttempt: number = Number(core.getInput('max-polling-attempts')) || 60
 
-  switch (operation) {
+  switch (action) {
     case 'branch':
       // Call the branching function
       await branching({
@@ -47,6 +47,9 @@ export async function run(): Promise<void> {
       // Call the delete instance function
       await deleteInstance({temboApiEndpoint, orgId, instanceId, temboToken})
       break
+    default:
+      // Handle unsupported action
+      throw new Error(`Unsupported operation: ${action}`)
   }
 }
 

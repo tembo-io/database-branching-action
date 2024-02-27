@@ -1,11 +1,11 @@
-name: 'Tembo Branching Action'
+name: 'Tembo Database Branching Action'
 description: 'Setup Database branching on your Tembo database instances'
 author: 'Tembo'
 
 # todo: Add better more descriptive descriptions for inputs
 inputs:
-  operation:
-    description: 'Operation task to perform (branch/delete)'
+  action:
+    description: 'Action task to perform (branch/delete)'
     default: 'branch'
   tembo-api-endpoint:
     description: 'The Tembo API you wish to interact with'
@@ -23,10 +23,10 @@ inputs:
     default: 'prod'
   polling-interval:
     description: 'The interval polling the Tembo API endpoint (type Number)'
-    default: 5000 // 5000ms/5 seconds
+    default: '5000'
   max-polling-attempts:
     description: 'Maximum number of attempts to check the status through the Tembo API endpoint (type Number)'
-    default: 60 // This gives us 5 seconds * 60 = 5 minutes of waiting
+    default: '60'
 
 outputs:
   instance_id:
