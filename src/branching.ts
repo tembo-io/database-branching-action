@@ -31,6 +31,20 @@ export async function run(): Promise<void> {
       environment: env
     }
 
+    // Check if the instance already exists, and return early
+    const doesExist = await instanceExists(
+      temboApiEndpoint,
+      orgId,
+      instanceName,
+      temboToken
+    )
+    if (doesExist) {
+      core.info(
+        `Database instance with name "${instanceName}" already exists, skipping creation`
+      )
+      return
+    }
+
     // Call the branching API
     const response = await axios.post(apiBranchingEndpoint, payload, {
       headers: {
@@ -99,4 +113,57 @@ if (require.main === module) {
     console.error(err)
     core.setFailed(`Unhandled error: ${err}`)
   })
+}
+
+async function instanceExists(
+  endpoint: string,
+  orgId: string,
+  instanceName: string,
+  token: string
+): Promise<boolean> {
+  const apiEndpoint = `${endpoint}/api/v1/orgs/${orgId}/instances`
+
+  try {
+    const response = await axios.get(apiEndpoint, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    })
+
+    // Check if the response is successful and contains an array
+    if (response.status === 200 && Array.isArray(response.data)) {
+      // Search for an instance with the matching name
+      return response.data.some(
+        instance => instance.instance_name === instanceName
+      )
+    } else {
+      // If the response is not 200 or not an array, log and treat as if the instance doesn't exist
+      console.log(`Unexpected response format or status: ${response.status}`)
+      return false
+    }
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      // Handle known error statuses
+      const errorMessage = `Tembo API request failed with status ${error.response?.status}: ${error.message}`
+      console.error(errorMessage)
+      core.setFailed(errorMessage)
+
+      // Rethrow or handle specific status codes as needed
+      if (
+        error.response?.status === 400 ||
+        error.response?.status === 401 ||
+        error.response?.status === 403 ||
+        error.response?.status === 409
+      ) {
+        throw new Error(errorMessage)
+      }
+    } else {
+      // Handle generic errors
+      const genericErrorMessage = `Action failed: ${error instanceof Error ? error.message : String(error)}`
+      console.error(genericErrorMessage)
+      core.setFailed(genericErrorMessage)
+    }
+    throw error
+  }
 }

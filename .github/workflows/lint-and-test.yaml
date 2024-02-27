@@ -29,7 +29,10 @@ jobs:
 
   test-action-execution:
     needs: lint-and-test
-    runs-on: ubuntu-latest
+    runs-on:
+      - self-hosted
+      - dind
+      - large-8x8
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -39,7 +42,7 @@ jobs:
           node-version: '20'
       - name: Format instance name
         id: set_instance_name
-        run: echo "INSTANCE_SUFFIX=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}-${{ github.run_attempt }}" >> $GITHUB_ENV
+        run: echo "INSTANCE_SUFFIX=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}" >> $GITHUB_ENV
       - name: Install dependencies
         run: npm ci
       - name: Build action
@@ -51,10 +54,10 @@ jobs:
           tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
           org-id: ${{ secrets.ORG_ID }}
           instance-id: ${{ secrets.BRANCH_INSTANCE_ID }}
-          instance-name: 'branch-${{env.INSTANCE_SUFFIX}}'
+          instance-name: '${{env.INSTANCE_SUFFIX}}'
           tembo-token: ${{ secrets.TEMBO_TOKEN }}
-          polling-interval: 5000
-          max-polling-attempts: 60
+          polling-interval: 10000
+          max-polling-attempts: 120
 
       - name: Check outputs
         run: |

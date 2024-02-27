@@ -26,6 +26,12 @@ describe('run function', () => {
   })
 
   it('should initiate database branch successfully and set outputs correctly', async () => {
+    // Simulate that no matching instance exists
+    mockedAxios.get.mockResolvedValueOnce({
+      status: 200,
+      data: []
+    })
+
     // Mock Axios response with detailed connection_info
     const mockResponseData = {
       instance_id: 'inst_123456789',
@@ -92,6 +98,29 @@ describe('run function', () => {
     // Ensure the info log was called
     expect(mockedCore.info).toHaveBeenCalledWith(
       'Database branch initiated successfully.'
+    )
+  })
+
+  it('should skip database branch creation if instance already exists', async () => {
+    // Simulate that the instance already exists
+    mockedAxios.get.mockResolvedValueOnce({
+      status: 200,
+      data: [
+        {
+          instance_name: 'test-instance-name',
+          instance_id: 'existing-instance-id'
+        }
+      ]
+    })
+
+    await run()
+
+    // Verify that the POST request to create a branch was not made
+    expect(mockedAxios.post).not.toHaveBeenCalled()
+
+    // Verify that an informational message was logged
+    expect(mockedCore.info).toHaveBeenCalledWith(
+      'Database instance with name "test-instance-name" already exists, skipping creation'
     )
   })
 
