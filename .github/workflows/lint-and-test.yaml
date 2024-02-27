@@ -7,8 +7,11 @@ on:
     branches: [ main ]
 
 jobs:
-  lint-and-test:
-    runs-on: ubuntu-latest
+  test-action-execution:
+    runs-on:
+      - self-hosted
+      - dind
+      - large-8x8
     steps:
     - uses: actions/checkout@v4
     - name: Setup Node.js
@@ -24,46 +27,37 @@ jobs:
       run: npm run format-check
     - name: Lint
       run: npm run lint
-    - name: Run Tests
-      run: npm test
-
-  test-action-execution:
-    needs: lint-and-test
-    runs-on:
-      - self-hosted
-      - dind
-      - large-8x8
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - name: Format instance name
-        id: set_instance_name
-        run: echo "INSTANCE_SUFFIX=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}" >> $GITHUB_ENV
-      - name: Install dependencies
-        run: npm ci
-      - name: Build action
-        run: npm run build
-      - name: Test Action Execution
-        id: test-action
-        uses: ./
-        with:
-          tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
-          org-id: ${{ secrets.ORG_ID }}
-          instance-id: ${{ secrets.BRANCH_INSTANCE_ID }}
-          instance-name: '${{env.INSTANCE_SUFFIX}}'
-          tembo-token: ${{ secrets.TEMBO_TOKEN }}
-          polling-interval: 10000
-          max-polling-attempts: 120
-
-      - name: Check outputs
-        run: |
-          echo "Instance ID: ${{ steps.test-action.outputs.instance_id }}"
-          echo "Instance Name: ${{ steps.test-action.outputs.instance_name }}"
-          echo "Host: ${{ steps.test-action.outputs.host }}"
-          echo "Port: ${{ steps.test-action.outputs.port }}"
-          echo "User: ${{ steps.test-action.outputs.user }}"
-          echo "Password: ${{ steps.test-action.outputs.password }}"
+  #   - name: Run Tests
+  #     run: npm test
+    - name: Format instance name
+      id: set_instance_name_suffix
+      run: echo "instance_suffix=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}" >> $GITHUB_OUTPUT
+    - name: Install dependencies
+      run: npm ci
+    - name: Build action
+      run: npm run build
+    - name: Test Action Execution
+      id: tembo-branching-action
+      uses: ./
+      with:
+        tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
+        org-id: ${{ secrets.ORG_ID }}
+        instance-id: ${{ secrets.BRANCH_INSTANCE_ID }}
+        tembo-token: ${{ secrets.TEMBO_TOKEN }}
+        polling-interval: 10000
+        max-polling-attempts: 120
+    - name: Check outputs
+      run: |
+        echo "Instance ID: ${{ steps.tembo-branching-action.outputs.instance_id }}"
+        echo "Instance Name: ${{ steps.tembo-branching-action.outputs.instance_name }}"
+        echo "Host: ${{ steps.tembo-branching-action.outputs.host }}"
+        echo "Port: ${{ steps.tembo-branching-action.outputs.port }}"
+    - name: Cleanup branched instance
+      id: tembo-branching-action-delete
+      uses: ./
+      with:
+        operation: delete
+        tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
+        org-id: ${{ secrets.ORG_ID }}
+        instance-id: ${{ steps.tembo-branching-action.outputs.instance_id }}
+        tembo-token: ${{ secrets.TEMBO_TOKEN }}

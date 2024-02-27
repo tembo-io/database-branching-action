@@ -2,7 +2,7 @@
 import axios from 'axios'
 import * as core from '@actions/core'
 
-interface InstanceDetails {
+interface GetInstanceStatusParams {
   instance_id: string
   instance_name: string
   host?: string
@@ -18,7 +18,7 @@ export async function getInstanceStatus(
   temboToken: string,
   pollInterval: number,
   maxAttempts: number
-): Promise<InstanceDetails> {
+): Promise<GetInstanceStatusParams> {
   const apiStatusEndpoint = `${temboApi}/api/v1/orgs/${orgId}/instances/${instanceId}`
   let state = 'Submitted'
 
@@ -58,7 +58,6 @@ export async function getInstanceStatus(
       }
     } catch (error) {
       let errorMessage: string
-      console.log(error)
       if (axios.isAxiosError(error) && error.response) {
         errorMessage = `Tembo API request failed with status ${error.response.status}: ${error.message}`
       } else {

@@ -4,6 +4,9 @@ author: 'Tembo'
 
 # todo: Add better more descriptive descriptions for inputs
 inputs:
+  operation:
+    description: 'Operation task to perform (branch/delete)'
+    default: 'branch'
   tembo-api-endpoint:
     description: 'The Tembo API you wish to interact with'
     default: 'https://api.tembo.io'
@@ -12,7 +15,7 @@ inputs:
   instance-id:
     description: 'The Tembo id of the instance you wish to branch'
   instance-name:
-    description: 'The name of your new branched instance'
+    description: 'The name of your new branched instance.  Default is a randomly generated name'
   tembo-token:
     description: 'The Tembo JWT token used to access your organization'
   environment:
@@ -41,5 +44,4 @@ outputs:
 
 runs:
   using: 'node20'
-  main: 'lib/branching.js'
-  post: 'lib/branching.js'
+  main: 'lib/main.js'

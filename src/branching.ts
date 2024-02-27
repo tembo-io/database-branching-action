@@ -2,27 +2,48 @@ import * as core from '@actions/core'
 import axios from 'axios'
 import {getInstanceStatus} from './getInstanceStatus'
 
-export async function run(): Promise<void> {
+interface BranchInstanceParams {
+  temboApiEndpoint: string
+  instanceId: string
+  orgId: string
+  instanceName: string
+  env: string
+  temboToken: string
+  pollInterval: number
+  maxAttempt: number
+}
+
+export async function branching({
+  temboApiEndpoint,
+  instanceId,
+  orgId,
+  instanceName,
+  env,
+  temboToken,
+  pollInterval,
+  maxAttempt
+}: BranchInstanceParams): Promise<void> {
   try {
-    // Retreive inputs from the action
-    const temboApiEndpoint: string =
-      core.getInput('tembo-api-endpoint') || 'https://api.tembo.io'
-    const orgId: string = core.getInput('org-id', {required: true})
-    const instanceId: string = core.getInput('instance-id', {required: true})
-    const instanceName: string = core.getInput('instance-name', {
-      required: true
+    // Check if the instance already exists, and return early if it does
+    const doesExist = await instanceExists({
+      temboApiEndpoint,
+      orgId,
+      instanceName,
+      temboToken
     })
-    const temboToken: string = core.getInput('tembo-token', {required: true})
-    const env: string = core.getInput('environment') || 'prod'
-    const pollInterval: number =
-      Number(core.getInput('polling-interval')) || 5000
-    const maxAttempt: number =
-      Number(core.getInput('max-polling-attempts')) || 60
-
-    const apiBranchingEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/restore`
-
+    if (doesExist) {
+      core.info(
+        `Database instance with name "${instanceName}" already exists, skipping creation`
+      )
+      return
+    } else {
+      core.info(
+        `Database instance with name "${instanceName}" doesn't exist, creating...`
+      )
+    }
     // Construct the branching payload
     // https://api.tembo.io/redoc#tag/instance/operation/restore_instance
+    const apiBranchingEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/restore`
     const payload = {
       instance_name: instanceName,
       restore: {
@@ -31,22 +52,8 @@ export async function run(): Promise<void> {
       environment: env
     }
 
-    // Check if the instance already exists, and return early
-    const doesExist = await instanceExists(
-      temboApiEndpoint,
-      orgId,
-      instanceName,
-      temboToken
-    )
-    if (doesExist) {
-      core.info(
-        `Database instance with name "${instanceName}" already exists, skipping creation`
-      )
-      return
-    }
-
     // Call the branching API
-    const response = await axios.post(apiBranchingEndpoint, payload, {
+    const branchResponse = await axios.post(apiBranchingEndpoint, payload, {
       headers: {
         Authorization: `Bearer ${temboToken}`,
         'Content-Type': 'application/json'
@@ -54,31 +61,41 @@ export async function run(): Promise<void> {
     })
 
     // For now lets just handle the response
-    if (response.status == 202) {
+    if (branchResponse.status == 202) {
       core.info(`Database branch initiated successfully.`)
 
       // Extract fields needed from the response
-      const responseData = response.data
-      const {instance_id, instance_name, connection_info} = responseData
-
-      core.setOutput('instance_id', instance_id)
-      core.setOutput('instance_name', instance_name)
-      core.setOutput('host', connection_info?.host)
-      core.setOutput('port', connection_info?.port.toString())
-      core.setOutput('user', connection_info?.user)
-      core.setOutput('password', connection_info?.password)
+      const branchResponseData = branchResponse.data
+      const branched_instance_id = branchResponseData.instance_id
+      if (typeof branched_instance_id !== 'string') {
+        // Handle the case where branched_instance_id is not a string
+        console.error('branched_instance_id must be a string')
+        return
+      }
+      console.log('Instance ID:', instanceId)
 
       // Now, check the status of the instance
-      await getInstanceStatus(
+      const instanceStatus = await getInstanceStatus(
         temboApiEndpoint,
         orgId,
-        instance_id,
+        branched_instance_id,
         temboToken,
         pollInterval,
         maxAttempt
       )
+
+      // Set outputs
+      core.setOutput('instance_id', instanceStatus.instance_id)
+      core.setOutput('instance_name', instanceStatus.instance_name)
+      if (instanceStatus.host) core.setOutput('host', instanceStatus.host)
+      if (instanceStatus.port) core.setOutput('port', instanceStatus.port)
+      if (instanceStatus.user) core.setOutput('user', instanceStatus.user)
+      if (instanceStatus.password)
+        core.setOutput('password', instanceStatus.password)
     } else {
-      core.setFailed(`Tembo API responded with status code: ${response.status}`)
+      core.setFailed(
+        `Tembo API responded with status code: ${branchResponse.status}`
+      )
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -108,25 +125,25 @@ export async function run(): Promise<void> {
   }
 }
 
-if (require.main === module) {
-  run().catch(err => {
-    console.error(err)
-    core.setFailed(`Unhandled error: ${err}`)
-  })
+interface InstanceExistsParams {
+  temboApiEndpoint: string
+  orgId: string
+  instanceName: string
+  temboToken: string
 }
 
-async function instanceExists(
-  endpoint: string,
-  orgId: string,
-  instanceName: string,
-  token: string
-): Promise<boolean> {
-  const apiEndpoint = `${endpoint}/api/v1/orgs/${orgId}/instances`
+async function instanceExists({
+  temboApiEndpoint,
+  orgId,
+  instanceName,
+  temboToken
+}: InstanceExistsParams): Promise<boolean> {
+  const apiEndpoint = `${temboApiEndpoint}/api/v1/orgs/${orgId}/instances`
 
   try {
     const response = await axios.get(apiEndpoint, {
       headers: {
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${temboToken}`,
         'Content-Type': 'application/json'
       }
     })
