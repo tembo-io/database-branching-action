@@ -1,5 +1,15 @@
+// getInstanceStatus.ts
 import axios from 'axios'
 import * as core from '@actions/core'
+
+interface InstanceDetails {
+  instance_id: string
+  instance_name: string
+  host?: string
+  port?: string
+  user?: string
+  password?: string
+}
 
 export async function getInstanceStatus(
   temboApi: string,
@@ -8,7 +18,7 @@ export async function getInstanceStatus(
   temboToken: string,
   pollInterval: number,
   maxAttempts: number
-): Promise<void> {
+): Promise<InstanceDetails> {
   const apiStatusEndpoint = `${temboApi}/api/v1/orgs/${orgId}/instances/${instanceId}`
   let state = 'Submitted'
 
@@ -26,59 +36,42 @@ export async function getInstanceStatus(
         }
       })
 
-      if (response.status === 200) {
-        state = response.data.state
-        console.log(`Current state: ${state}`)
+      state = response.data.state
+      core.info(`Current state: ${state}`)
 
-        if (state === 'Up') {
-          core.info('Instance is up and running.')
-          break
-        } else if (state === 'Error') {
-          core.setFailed('Instance encountered an error.')
-          break
+      if (state === 'Up') {
+        core.info('Instance is up and running.')
+        const {instance_id, instance_name, connection_info} = response.data
+
+        return {
+          instance_id,
+          instance_name,
+          host: connection_info?.host,
+          port: connection_info?.port?.toString(),
+          user: connection_info?.user,
+          password: connection_info?.password
         }
-
-        // If state is 'Submitted' or 'Configuring', wait for the next poll
-        await new Promise(resolve => setTimeout(resolve, pollInterval))
+      } else if (state === 'Error') {
+        throw new Error('Instance encountered an error.')
       } else {
-        core.setFailed(
-          `Failed to check instance status: HTTP ${response.status}`
-        )
-        break
+        await new Promise(resolve => setTimeout(resolve, pollInterval))
       }
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        switch (error.response?.status) {
-          case 400:
-            core.setFailed(`Tembo API Bad Request: ${error.message}`)
-            break
-          case 401:
-            core.setFailed(`Tembo API Unauthorized: ${error.message}`)
-            break
-          case 403:
-            core.setFailed(`Tembo API Forbidden: ${error.message}`)
-            break
-          default:
-            core.setFailed(
-              `Tembo API request failed with status ${error.response?.status}: ${error.message}`
-            )
-        }
-      } else if (error instanceof Error) {
-        core.setFailed(`Failed to check instance status: ${error.message}`)
+      let errorMessage: string
+      console.log(error)
+      if (axios.isAxiosError(error) && error.response) {
+        errorMessage = `Tembo API request failed with status ${error.response.status}: ${error.message}`
       } else {
-        core.setFailed(
-          `Failed to check instance status: An unknown error occurred.`
-        )
+        errorMessage = `Failed to check instance status: ${error instanceof Error ? error.message : 'An unknown error occurred.'}`
       }
-      break
+      core.setFailed(errorMessage)
+      throw new Error(errorMessage)
     }
 
     attempts++
   }
 
-  if (attempts >= maxAttempts && state !== 'Up') {
-    core.setFailed(
-      'Instance did not reach the "Up" state within the expected time.'
-    )
-  }
+  throw new Error(
+    'Instance did not reach the "Up" state within the expected time.'
+  )
 }

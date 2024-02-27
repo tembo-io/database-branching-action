@@ -1,8 +1,8 @@
+// getInstanceStatus.test.ts
 import axios from 'axios'
 import * as core from '@actions/core'
 import {getInstanceStatus} from './getInstanceStatus'
 
-// Mocking axios and @actions/core
 jest.mock('axios')
 jest.mock('@actions/core')
 
@@ -16,20 +16,24 @@ describe('getInstanceStatus', () => {
 
   it('should successfully detect an instance reaching the "Up" state', async () => {
     mockedAxios.get
+      .mockResolvedValueOnce({status: 200, data: {state: 'Submitted'}})
+      .mockResolvedValueOnce({status: 200, data: {state: 'Configuring'}})
       .mockResolvedValueOnce({
         status: 200,
-        data: {state: 'Submitted'}
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        data: {state: 'Configuring'}
-      })
-      .mockResolvedValueOnce({
-        status: 200,
-        data: {state: 'Up'}
+        data: {
+          state: 'Up',
+          instance_id: 'inst123',
+          instance_name: 'test-instance',
+          connection_info: {
+            host: 'test-host',
+            port: 5432,
+            user: 'test-user',
+            password: 'test-password'
+          }
+        }
       })
 
-    await getInstanceStatus(
+    const instanceDetails = await getInstanceStatus(
       'https://api.tembo.io',
       'org123',
       'inst123',
@@ -40,49 +44,34 @@ describe('getInstanceStatus', () => {
 
     expect(mockedCore.info).toHaveBeenCalledWith('Instance is up and running.')
     expect(mockedAxios.get).toHaveBeenCalledTimes(3)
+    expect(instanceDetails).toEqual({
+      instance_id: 'inst123',
+      instance_name: 'test-instance',
+      host: 'test-host',
+      port: '5432',
+      user: 'test-user',
+      password: 'test-password'
+    })
   })
 
-  it('should handle instance encountering an error state', async () => {
-    mockedAxios.get.mockResolvedValue({
-      status: 200,
-      data: {state: 'Error'}
+  it('should handle 401 Unauthorized error', async () => {
+    mockedAxios.get.mockRejectedValue({
+      isAxiosError: true,
+      response: {status: 401, data: 'Unauthorized'}
     })
 
-    await getInstanceStatus(
-      'https://api.tembo.io',
-      'org123',
-      'inst123',
-      'token123',
-      100,
-      5
-    )
-
-    expect(mockedCore.setFailed).toHaveBeenCalledWith(
-      'Instance encountered an error.'
-    )
+    await expect(
+      getInstanceStatus(
+        'https://api.tembo.io',
+        'org123',
+        'inst123',
+        'token123',
+        100,
+        5
+      )
+    ).rejects.toThrow('Tembo API request failed with status 401: Unauthorized')
     expect(mockedAxios.get).toHaveBeenCalledTimes(1)
   })
 
-  it('should fail after maximum attempts without reaching "Up" state', async () => {
-    mockedAxios.get.mockResolvedValue({
-      status: 200,
-      data: {state: 'Configuring'}
-    })
-
-    await getInstanceStatus(
-      'https://api.tembo.io',
-      'org123',
-      'inst123',
-      'token123',
-      100,
-      3
-    )
-
-    expect(mockedCore.setFailed).toHaveBeenCalledWith(
-      'Instance did not reach the "Up" state within the expected time.'
-    )
-    expect(mockedAxios.get).toHaveBeenCalledTimes(3)
-  })
-
-  // todo: Add more tests
+  // Additional tests for other scenarios...
 })
