@@ -68,7 +68,22 @@ export async function run(): Promise<void> {
     }
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      core.setFailed(`Tembo API request failed: ${error.message}`)
+      switch (error.response?.status) {
+        case 400:
+          core.setFailed(`Tembo API Bad Request: ${error.message}`)
+          break
+        case 401:
+          core.setFailed(`Tembo API Unauthorized: ${error.message}`)
+          break
+        case 403: 
+          core.setFailed(`Tembo API Forbidden: ${error.message}`)
+          break
+        case 409:
+          core.setFailed(`Tembo API Conflict: ${error.message}`)
+          break
+        default:
+          core.setFailed(`Tembo API request failed with status ${error.response?.status}: ${error.message}`)
+      }
     } else {
       core.setFailed(
         `Action failed: ${error instanceof Error ? error.message : String(error)}`
