@@ -55,11 +55,13 @@ export async function getInstanceStatus(
           case 401:
             core.setFailed(`Tembo API Unauthorized: ${error.message}`)
             break
-          case 403: 
+          case 403:
             core.setFailed(`Tembo API Forbidden: ${error.message}`)
             break
           default:
-            core.setFailed(`Tembo API request failed with status ${error.response?.status}: ${error.message}`)
+            core.setFailed(
+              `Tembo API request failed with status ${error.response?.status}: ${error.message}`
+            )
         }
       } else if (error instanceof Error) {
         core.setFailed(`Failed to check instance status: ${error.message}`)

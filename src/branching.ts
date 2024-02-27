@@ -75,14 +75,16 @@ export async function run(): Promise<void> {
         case 401:
           core.setFailed(`Tembo API Unauthorized: ${error.message}`)
           break
-        case 403: 
+        case 403:
           core.setFailed(`Tembo API Forbidden: ${error.message}`)
           break
         case 409:
           core.setFailed(`Tembo API Conflict: ${error.message}`)
           break
         default:
-          core.setFailed(`Tembo API request failed with status ${error.response?.status}: ${error.message}`)
+          core.setFailed(
+            `Tembo API request failed with status ${error.response?.status}: ${error.message}`
+          )
       }
     } else {
       core.setFailed(
