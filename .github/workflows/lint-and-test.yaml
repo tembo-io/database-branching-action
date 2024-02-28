@@ -56,7 +56,7 @@ jobs:
       id: tembo-branching-action-delete
       uses: ./
       with:
-        operation: delete
+        action: delete
         tembo-api-endpoint: ${{ secrets.TEMBO_API_ENDPOINT }}
         org-id: ${{ secrets.ORG_ID }}
         instance-id: ${{ steps.tembo-branching-action.outputs.instance_id }}
