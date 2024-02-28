@@ -27,8 +27,8 @@ jobs:
       run: npm run format-check
     - name: Lint
       run: npm run lint
-  #   - name: Run Tests
-  #     run: npm test
+    - name: Run Tests
+      run: npm test
     - name: Format instance name
       id: set_instance_name_suffix
       run: echo "instance_suffix=$(git rev-parse --short ${{ github.sha }})-${{ github.run_id }}" >> $GITHUB_OUTPUT

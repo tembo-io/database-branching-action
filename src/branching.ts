@@ -69,10 +69,9 @@ export async function branching({
       const branched_instance_id = branchResponseData.instance_id
       if (typeof branched_instance_id !== 'string') {
         // Handle the case where branched_instance_id is not a string
-        console.error('branched_instance_id must be a string')
+        core.setFailed('branched_instance_id must be a string')
         return
       }
-      console.log('Instance ID:', instanceId)
 
       // Now, check the status of the instance
       const instanceStatus = await getInstanceStatus(
@@ -98,6 +97,7 @@ export async function branching({
       )
     }
   } catch (error) {
+    console.log('Error:', error)
     if (axios.isAxiosError(error)) {
       switch (error.response?.status) {
         case 400:
@@ -178,7 +178,6 @@ async function instanceExists({
     } else {
       // Handle generic errors
       const genericErrorMessage = `Action failed: ${error instanceof Error ? error.message : String(error)}`
-      console.error(genericErrorMessage)
       core.setFailed(genericErrorMessage)
     }
     throw error

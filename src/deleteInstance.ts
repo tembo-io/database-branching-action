@@ -30,8 +30,6 @@ async function deleteInstance({
       )
     }
   } catch (error) {
-    console.log('TEST:', error)
-    console.log('Axios Error:', axios.isAxiosError(error))
     if (axios.isAxiosError(error)) {
       core.setFailed(
         `Error deleting instance ${instanceId}: ${error.response?.data}`
