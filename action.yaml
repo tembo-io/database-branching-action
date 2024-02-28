@@ -1,6 +1,9 @@
 name: 'Tembo Database Branching Action'
 description: 'Setup Database branching on your Tembo database instances'
 author: 'Tembo'
+branding:
+  icon: database
+  color: white
 
 # todo: Add better more descriptive descriptions for inputs
 inputs:
