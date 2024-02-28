@@ -1,8 +1,8 @@
 {
-  "name": "tembo-action",
+  "name": "database-branching-action",
   "version": "1.0.0",
-  "description": "Tembo instance branching action",
-  "main": "lib/branching.js",
+  "description": "Tembo database branching action",
+  "main": "lib/main.js",
   "scripts": {
     "build": "tsc",
     "test": "jest",
@@ -10,7 +10,7 @@
     "format-check": "prettier --no-error-on-unmatched-pattern --config ./.prettierrc.json --check '**/*.ts'",
     "lint": "eslint src/**/*.ts"
   },
-  "keywords": [],
+  "keywords": ["database", "forking", "postgresql", "postgres"],
   "author": "tembo.io",
   "license": "ISC",
   "dependencies": {
