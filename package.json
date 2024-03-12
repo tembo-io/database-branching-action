@@ -2,9 +2,11 @@
   "name": "database-branching-action",
   "version": "1.0.0",
   "description": "Tembo database branching action",
-  "main": "lib/main.js",
+  "main": "dist/index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && ncc build",
+    "release": "ncc build src/main.ts -o dist/",
+    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
     "test": "jest",
     "format": "prettier --no-error-on-unmatched-pattern --config ./.prettierrc.json --write '**/*.ts'",
     "format-check": "prettier --no-error-on-unmatched-pattern --config ./.prettierrc.json --check '**/*.ts'",
