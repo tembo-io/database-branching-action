@@ -49,14 +49,15 @@
 
 ### Outputs
 
-| Name | Description | Example |
-| - | - | - |
-| `instance_id` | The instance ID of the new Tembo branched instance | `inst_1709075092950_QhNBzB_32` |
-| `instance_name` | The name of the new Tembo branched instance | `panther-shaky-1` |
-| `host` | The connection host of the new Tembo branched instance | `org-tembo-inst-panther-shaky-1.data-1.use1.tembo.io` |
-| `port` | The connection port of the new Tembo branched instance | `5432` |
-| `user` | The username of the new Tembo branched instance (**base64 encoded**) | `cG9zdGdyZXM=` |
-| `password` | The password of the new Tembo branched instance (**base64 encoded**) | `cG9zdGdyZXNwb3N0Z3Jlc3Bvc3RncmVzMQ==` |
+| Name            | Description                                                          | Example                                               |
+|-----------------|----------------------------------------------------------------------|-------------------------------------------------------|
+| `instance_id`   | The instance ID of the new Tembo branched instance                   | `inst_1709075092950_QhNBzB_32`                        |
+| `instance_name` | The name of the new Tembo branched instance                          | `panther-shaky-1`                                     |
+| `host`          | The connection host of the new Tembo branched instance               | `org-tembo-inst-panther-shaky-1.data-1.use1.tembo.io` |
+| `port`          | The connection port of the new Tembo branched instance               | `5432`                                                |
+| `user`          | The username of the new Tembo branched instance (**base64 encoded**) | `cG9zdGdyZXM=`                                        |
+| `password`      | The password of the new Tembo branched instance (**base64 encoded**) | `cG9zdGdyZXNwb3N0Z3Jlc3Bvc3RncmVzMQ==`                |
+| `database_url`  | The full connection string of the new Tembo branched instance        | `postgresql://username:password@host:port`            |
 
 ## Examples
 
