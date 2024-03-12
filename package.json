@@ -2,15 +2,17 @@
   "name": "database-branching-action",
   "version": "1.0.0",
   "description": "Tembo database branching action",
-  "main": "dist/index.js",
+  "main": "lib/main.js",
   "scripts": {
     "build": "tsc && ncc build",
-    "release": "ncc build src/main.ts -o dist/",
-    "check-all": "concurrently \"npm:format-check\" \"npm:lint\" \"npm:test\" \"npm:build\"",
-    "test": "jest",
     "format": "prettier --no-error-on-unmatched-pattern --config ./.prettierrc.json --write '**/*.ts'",
     "format-check": "prettier --no-error-on-unmatched-pattern --config ./.prettierrc.json --check '**/*.ts'",
-    "lint": "eslint src/**/*.ts"
+    "lint": "eslint src/**/*.ts",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tembo-io/database-branching-action.git"
   },
   "keywords": [
     "database",
@@ -20,6 +22,10 @@
   ],
   "author": "tembo.io",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tembo-io/database-branching-action/issues"
+  },
+  "homepage": "https://github.com/tembo-io/database-branching-action#readme",
   "dependencies": {
     "@actions/core": "^1.10.1",
     "axios": "^1.6.7",
