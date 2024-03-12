@@ -44,6 +44,8 @@ outputs:
     description: 'The username for the connection, base64 encoded'
   password:
     description: 'The password for the connection, base64 encoded'
+  database_url:
+    description: 'The full database connection URI without the database'
 
 runs:
   using: 'node20'

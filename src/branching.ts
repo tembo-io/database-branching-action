@@ -91,6 +91,16 @@ export async function branching({
       if (instanceStatus.user) core.setOutput('user', instanceStatus.user)
       if (instanceStatus.password)
         core.setOutput('password', instanceStatus.password)
+      if (
+        instanceStatus.host &&
+        instanceStatus.port &&
+        instanceStatus.user &&
+        instanceStatus.password
+      )
+        core.setOutput(
+          'database_url',
+          `postgresql://${instanceStatus.user}:${instanceStatus.password}@${instanceStatus.host}:${instanceStatus.port}`
+        )
     } else {
       core.setFailed(
         `Tembo API responded with status code: ${branchResponse.status}`
