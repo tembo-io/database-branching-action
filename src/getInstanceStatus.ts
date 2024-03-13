@@ -1,6 +1,5 @@
-// getInstanceStatus.ts
-import axios from 'axios'
 import * as core from '@actions/core'
+import axios from 'axios'
 
 interface GetInstanceStatusParams {
   instance_id: string
@@ -25,7 +24,7 @@ export async function getInstanceStatus(
   let attempts = 0
 
   while (
-    (state === 'Submitted' || state === 'Configuring') &&
+    (state === 'Submitted' || state === 'Configuring' || state === 'Error') &&
     attempts < maxAttempts
   ) {
     try {
@@ -52,7 +51,7 @@ export async function getInstanceStatus(
           password: connection_info?.password
         }
       } else if (state === 'Error') {
-        throw new Error('Instance encountered an error.')
+        core.warning('Instance encountered an error. Retrying...')
       } else {
         await new Promise(resolve => setTimeout(resolve, pollInterval))
       }
@@ -63,8 +62,7 @@ export async function getInstanceStatus(
       } else {
         errorMessage = `Failed to check instance status: ${error instanceof Error ? error.message : 'An unknown error occurred.'}`
       }
-      core.setFailed(errorMessage)
-      throw new Error(errorMessage)
+      core.warning(errorMessage)
     }
 
     attempts++

@@ -1,5 +1,5 @@
-import axios from 'axios'
 import * as core from '@actions/core'
+import axios from 'axios'
 import {getInstanceStatus} from './getInstanceStatus'
 
 jest.mock('axios')
@@ -47,21 +47,49 @@ it('successfully retrieves instance status when instance becomes Up', async () =
   expect(mockedCore.info).toHaveBeenCalledWith('Instance is up and running.')
 })
 
-it('throws an error when instance encounters an "Error" state', async () => {
-  mockedAxios.get.mockResolvedValue({
-    data: {state: 'Error'}
-  })
+it('retries when instance encounters an "Error" state and eventually becomes Up', async () => {
+  mockedAxios.get
+    .mockResolvedValueOnce({
+      data: {state: 'Error'}
+    })
+    .mockResolvedValueOnce({
+      data: {state: 'Configuring'}
+    })
+    .mockResolvedValueOnce({
+      data: {
+        state: 'Up',
+        instance_id: '123',
+        instance_name: 'testInstance',
+        connection_info: {
+          host: 'localhost',
+          port: 5432,
+          user: 'admin',
+          password: 'password'
+        }
+      }
+    })
 
-  await expect(
-    getInstanceStatus(
-      'https://api.tembo.io',
-      'org123',
-      '123',
-      'token789',
-      1000,
-      2
-    )
-  ).rejects.toThrow('Instance encountered an error.')
+  const status = await getInstanceStatus(
+    'https://api.tembo.io',
+    'org123',
+    '123',
+    'token789',
+    1000,
+    3
+  )
+
+  expect(status).toEqual({
+    instance_id: '123',
+    instance_name: 'testInstance',
+    host: 'localhost',
+    port: '5432',
+    user: 'admin',
+    password: 'password'
+  })
+  expect(mockedCore.info).toHaveBeenCalledWith('Instance is up and running.')
+  expect(mockedCore.warning).toHaveBeenCalledWith(
+    'Instance encountered an error. Retrying...'
+  )
 })
 
 it('throws an error when max attempts are exceeded without reaching "Up" state', async () => {
